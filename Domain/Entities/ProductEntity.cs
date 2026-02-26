@@ -1,4 +1,6 @@
-﻿using System.Xml.Linq;
+﻿using System.Data;
+using System.Security.Cryptography.X509Certificates;
+using System.Xml.Linq;
 
 namespace Domain.Entities
 {
@@ -10,6 +12,9 @@ namespace Domain.Entities
         public decimal Price { get; private set; }
         public int Stock { get; private set; }
         public int CategoryId { get; private set; }
+
+        public bool IsActive { get; private set; } = true;
+        public DateTime? DeletedAt { get; private set; }
 
         //Constructor 
         public ProductEntity(string name, string sku, decimal price, int stock, int categoryId)
@@ -25,24 +30,33 @@ namespace Domain.Entities
             Price = price;
             Stock = stock;
             CategoryId = categoryId;
+            IsActive = true;
+            
         }
 
 
-        public void UpdateProduct(string name, string sku, decimal price, int stock, int categoryId)
+        public void UpdateProduct(string name, decimal price, int stock, int categoryId)
         {
             ValidateName(name);
-            ValidateSku(sku);
             ValidatePrice(price);
             ValidateStock(stock);
 
             Name = name.Trim();
-            Sku = sku.Trim().ToUpper();
             Price = price;
             Stock = stock;
             CategoryId = categoryId;
         }
 
+
+
         //Reglas de negocio
+        public void Desactivate()
+        {
+            if (!IsActive)
+                throw new InvalidOperationException("El producto ya se encuentra desactivado");
+            IsActive = false;
+            DeletedAt = DateTime.UtcNow;
+        }
         private void ValidateSku(string sku)
         {
             if (string.IsNullOrEmpty(sku))
@@ -69,7 +83,7 @@ namespace Domain.Entities
                 throw new ArgumentException("El precio no puede ser negativo.", nameof(price));
         }
 
-        private void ValidateStock(decimal stock) {
+        private void ValidateStock(int stock) {
             if (stock < 0)
                 throw new ArgumentException("El stock no puede ser negativo.", nameof(stock));
         }
