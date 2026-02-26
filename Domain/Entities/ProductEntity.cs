@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace Domain
+namespace Domain.Entities
 {
     public class ProductEntity
     {
