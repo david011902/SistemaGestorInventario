@@ -17,17 +17,33 @@ namespace Domain.Entities
         private readonly List<SaleDetailEntity> _details = new List<SaleDetailEntity>();
         public IReadOnlyCollection<SaleDetailEntity> Details => _details;
         
-        public SaleEntity(DateTime date, string folio, decimal total, SaleStatus status)
+        public SaleEntity(string folio)
         {
             ValidateFolio(folio);
             Id = Guid.NewGuid();
-            Date = date;
+            Date = DateTime.UtcNow;
             Folio = folio.Trim().ToUpper();
-            Total = total;
-            Status = status;
+            Total = 0;
+            Status = SaleStatus.Pending;
         }
 
+        public void Cancel()
+        {
+            Status = SaleStatus.Cancelled;
+        }
         //Reglas de negocio
+        public void AddDetail(Guid id, int quantity, decimal unitPrice)
+        {
+            var detail = new SaleDetailEntity(this.Id, id, quantity, unitPrice);
+            _details.Add(detail);
+            CalculateTotal();
+        }
+
+        private void CalculateTotal()
+        {
+            Total = _details.Sum(d => d.Subtotal);
+        }
+
         private void ValidateFolio(string folio)
         {
             if (string.IsNullOrWhiteSpace(folio))

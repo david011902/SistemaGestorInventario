@@ -7,14 +7,16 @@ namespace Domain.Entities
     public class LotsEntity
     {
         public Guid Id {  get; private set; }
-        public int ProductId { get; private set; }  
+        public Guid ProductId { get; private set; }  
         public int InitialAmount { get; private set; }  
         public int CurrentAmount { get; private set; }
         public decimal PurchaseCost { get; private set; }
         public DateTime ArrivateDate { get; private set; }
         public string ? Supplier { get; private set; }  
 
-       public LotsEntity(int productId, int initialAmount, decimal purchaseCost, DateTime arrivateDate, string? supplier)
+        public virtual ProductEntity Product { get; private set; } = null!; // Relación con el producto
+
+       public LotsEntity(Guid productId, int initialAmount, decimal purchaseCost, DateTime arrivateDate, string? supplier)
         {
             ValidateInitialAmount(initialAmount);
             ValidatePurchaseCost(purchaseCost);
@@ -38,7 +40,19 @@ namespace Domain.Entities
             this.Supplier = supplier?.Trim();
         }
 
+        public void AddStock(int quantity)
+        {
+            CurrentAmount += quantity;
+        }
         // Reglas de negocio
+        public void SubtractStock(int quantity)
+        {
+            if (quantity <= 0)
+                throw new ArgumentException("La cantidad a restar debe ser mayor a cero.", nameof(quantity));
+            if (quantity > CurrentAmount)
+                throw new InvalidOperationException("No hay suficiente stock para restar la cantidad solicitada.");
+            CurrentAmount -= quantity;
+        }
         private void ValidateInitialAmount(int initialAmount)
         {
             if (initialAmount <= 0)
