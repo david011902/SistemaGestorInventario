@@ -20,7 +20,7 @@ namespace Application.UseCases.Products
             {
                 throw new InvalidOperationException($"No se encontro el producto con el id: {dto.Id}");
             }
-            person.UpdateProduct(dto.Name, dto.Price, dto.Stock, dto.CategoryId);
+            person.UpdateProduct(dto.Name, dto.Price, dto.CategoryId);
             await _repository.UpdateAsync(person);
             await _repository.SaveChangesAsync();
             return person;

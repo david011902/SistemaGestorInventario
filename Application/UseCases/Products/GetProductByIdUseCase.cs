@@ -18,7 +18,7 @@ namespace Application.UseCases.Products
             var product = await _repository.GetByIdAsync(id);
             if (product == null)
             {
-                throw new InvalidOperationException($"No se encontro un producto con el SKU: {id} ");
+                throw new InvalidOperationException($"No se encontro un producto con el id: {id} ");
             }
             return product;
         }

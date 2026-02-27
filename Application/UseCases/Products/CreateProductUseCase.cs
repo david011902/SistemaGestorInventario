@@ -27,7 +27,6 @@ namespace Application.UseCases.Products
                 dto.Name, 
                 dto.Sku, 
                 dto.Price, 
-                dto.Stock, 
                 dto.CategoryId
                 );
 

@@ -10,40 +10,36 @@ namespace Domain.Entities
         public string Name { get; private set; } = string.Empty;
         public string Sku { get; private set; } = string.Empty;
         public decimal Price { get; private set; }
-        public int Stock { get; private set; }
         public int CategoryId { get; private set; }
-
         public bool IsActive { get; private set; } = true;
         public DateTime? DeletedAt { get; private set; }
-
+        private readonly List<LotsEntity> _lots = new();
+        public virtual IReadOnlyCollection<LotsEntity> Lots => _lots;
+        public int Stock => _lots.Sum(l => l.CurrentAmount);
         //Constructor 
-        public ProductEntity(string name, string sku, decimal price, int stock, int categoryId)
+        public ProductEntity(string name, string sku, decimal price, int categoryId)
         {
             ValidateName(name);
             ValidateSku(sku);
             ValidatePrice(price);
-            ValidateStock(stock);
 
             Id = Guid.NewGuid();
             Name = name.Trim();
             Sku = sku.Trim().ToUpper();
             Price = price;
-            Stock = stock;
             CategoryId = categoryId;
             IsActive = true;
             
         }
 
 
-        public void UpdateProduct(string name, decimal price, int stock, int categoryId)
+        public void UpdateProduct(string name, decimal price,  int categoryId)
         {
             ValidateName(name);
             ValidatePrice(price);
-            ValidateStock(stock);
 
             Name = name.Trim();
             Price = price;
-            Stock = stock;
             CategoryId = categoryId;
         }
 
@@ -83,9 +79,5 @@ namespace Domain.Entities
                 throw new ArgumentException("El precio no puede ser negativo.", nameof(price));
         }
 
-        private void ValidateStock(int stock) {
-            if (stock < 0)
-                throw new ArgumentException("El stock no puede ser negativo.", nameof(stock));
-        }
     }
 }

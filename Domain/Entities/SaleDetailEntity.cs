@@ -12,7 +12,7 @@ namespace Domain.Entities
         public int Quantity { get; private set; }
         public decimal PriceAtSale { get; private set; }
         public decimal Subtotal => Quantity * PriceAtSale;
-
+        public virtual LotsEntity Lot { get; private set; } = null!;
         public SaleDetailEntity(Guid saleId, Guid lotId, int quantity, decimal priceAtSale)
         {
             ValidatePriceAtSale(priceAtSale);
