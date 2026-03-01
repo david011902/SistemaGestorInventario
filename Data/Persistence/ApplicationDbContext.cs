@@ -153,7 +153,7 @@ namespace Data.Persistence
         private void UpdateTimestamps()
         {
             var entries = ChangeTracker.Entries()
-                .Where(e => e.Entity is ProductEntity && (e.State == EntityState.Added || e.State == EntityState.Modified));
+                .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added);
             foreach (var entry in entries)
             {
                 if (entry.State == EntityState.Added)
