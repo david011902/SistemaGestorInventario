@@ -45,6 +45,12 @@ namespace Domain.Entities
             CurrentAmount += quantity;
         }
         // Reglas de negocio
+        public void AdjustStock(int newCurrentAmount)
+        {
+            if (newCurrentAmount < 0)
+                throw new ArgumentException("La cantidad actual no puede ser negativa.", nameof(newCurrentAmount));
+            this.CurrentAmount = newCurrentAmount;
+        }
         public void SubtractStock(int quantity)
         {
             if (quantity <= 0)

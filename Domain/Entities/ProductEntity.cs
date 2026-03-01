@@ -1,4 +1,7 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Data;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
 
@@ -16,6 +19,10 @@ namespace Domain.Entities
         private readonly List<LotsEntity> _lots = new();
         public virtual IReadOnlyCollection<LotsEntity> Lots => _lots;
         public int Stock => _lots.Sum(l => l.CurrentAmount);
+
+        // Added collection for sale details
+        private readonly List<SaleDetailEntity> _saleDetails = new();
+        public virtual IReadOnlyCollection<SaleDetailEntity> SaleDetails => _saleDetails;
         //Constructor 
         public ProductEntity(string name, string sku, decimal price, int categoryId)
         {

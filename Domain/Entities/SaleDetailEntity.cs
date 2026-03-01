@@ -9,10 +9,14 @@ namespace Domain.Entities
         public Guid Id { get; private set; }
         public Guid SaleId { get; private set; }
         public Guid LotId { get; private set; }
+        public Guid ProductId { get; private set; } 
         public int Quantity { get; private set; }
         public decimal PriceAtSale { get; private set; }
         public decimal Subtotal => Quantity * PriceAtSale;
         public virtual LotsEntity Lot { get; private set; } = null!;
+        public virtual ProductEntity Product { get; private set; } = null!; 
+        public virtual SaleEntity Sale { get; private set; } = null!;
+
         public SaleDetailEntity(Guid saleId, Guid lotId, int quantity, decimal priceAtSale)
         {
             ValidatePriceAtSale(priceAtSale);
