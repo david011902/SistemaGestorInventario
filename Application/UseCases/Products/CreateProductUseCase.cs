@@ -18,7 +18,7 @@ namespace Application.UseCases.Products
 
         public async Task<ProductEntity> ExecuteAsync(CreateProductDto dto)
         { 
-            if(await _skuRepository.ExistsWithCodeAsync(dto.Sku))
+            if(await _skuRepository.ExistsWithSkuAsync(dto.Sku))
             {
                 throw new Exception("SKU ya se encuentra registrado.");
             }

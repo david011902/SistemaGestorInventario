@@ -13,6 +13,7 @@ namespace Domain.Entities
         public decimal PurchaseCost { get; private set; }
         public DateTime ArrivateDate { get; private set; }
         public string ? Supplier { get; private set; }  
+        public bool IsActive { get; private set; } // Indica si el lote está activo
 
         public virtual ProductEntity Product { get; private set; } = null!; // Relación con el producto
 
@@ -28,6 +29,7 @@ namespace Domain.Entities
             this.PurchaseCost = purchaseCost;
             this.ArrivateDate = arrivateDate;
             this.Supplier = supplier?.Trim();
+            this.IsActive = true; // Por defecto, un lote recién creado está activo
         }
 
         public void UpdateLot(int initialAmount, decimal purchaseCost, DateTime arrivateDate, string? supplier)

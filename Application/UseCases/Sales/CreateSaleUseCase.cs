@@ -9,16 +9,18 @@ namespace Application.UseCases.Sales
     public class CreateSaleUseCase
     {
         private readonly ILotRepository _lotRepository;
+        private readonly ISkuRepository<ProductEntity> _skuRepository;
         private readonly ISaleRepository _saleRepository;
         private readonly IFolioService _folioService;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateSaleUseCase(ILotRepository lotRepository, ISaleRepository saleRepository, IFolioService folioService, IUnitOfWork unitOfWork)
+        public CreateSaleUseCase(ILotRepository lotRepository, ISaleRepository saleRepository, IFolioService folioService, IUnitOfWork unitOfWork, ISkuRepository<ProductEntity> skuRepository )
         {
             _lotRepository = lotRepository;
             _saleRepository = saleRepository;
             _folioService = folioService;
             _unitOfWork = unitOfWork;
+            _skuRepository = skuRepository;
         }
 
         public async Task<Guid> ExecuteAsync(CreateSaleDto dto)
@@ -29,13 +31,25 @@ namespace Application.UseCases.Sales
                 var sale = new SaleEntity(folio);
                 foreach (var item in dto.Items)
                 {   //Obtener lote del producto, validar existencia y stock, agregar detalle a la venta
-                    var lot = await _lotRepository.GetByIdAsync(item.LotId);
-                    if (lot == null) throw new Exception($"Lote con ID {item.LotId} no encontrado.");
-                    if (lot.CurrentAmount < item.Quantity) throw new Exception($"Stock insuficiente {item.LotId}.");
-                    //agregar detalle a la venta y actualizar stock del lote
-                    sale.AddDetail(lot.Id, item.Quantity, lot.Product.Price);
-                    lot.SubtractStock(item.Quantity);
-                    await _lotRepository.UpdateAsync(lot);
+                    var lots = await _lotRepository.GetActiveLotsBySkuAsync(item.Sku);
+         
+                    if (!lots.Any() || lots == null)
+                        throw new Exception($"No hay lotes activos para el producto con Sku {item.Sku}.");
+
+                    var sortedLots = lots.OrderBy(l => l.ArrivateDate).ToList();
+                    int remainingToSell = item.Quantity;
+                    foreach (var l in sortedLots)
+                    {
+                        int quantityFromLot = Math.Min(l.CurrentAmount, remainingToSell);
+
+                        sale.AddDetail(l.ProductId, quantityFromLot, l.Product.Price);
+                        l.SubtractStock(quantityFromLot);
+                        await _lotRepository.UpdateAsync(l);
+
+                        remainingToSell -= quantityFromLot;
+                    }
+                    if (remainingToSell > 0)
+                        throw new Exception($"Stock insuficiente para el SKU {item.Sku}. Faltaron {remainingToSell} piezas");
                 }
                 await _saleRepository.AddAsync(sale);
                 await _saleRepository.SaveChangesAsync();
