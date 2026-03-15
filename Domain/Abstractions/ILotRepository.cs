@@ -8,5 +8,6 @@ namespace Domain.Abstractions
     public interface ILotRepository : IRepository<LotsEntity, Guid>
     {
         Task<IEnumerable<LotsEntity>> GetActiveLotsByProductIdAsync(Guid productId);
+        Task<List<LotsEntity>> GetActiveLotsBySkuAsync(string sku);
     }
 }

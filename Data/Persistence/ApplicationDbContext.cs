@@ -1,9 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+
 
 namespace Data.Persistence
 {
@@ -38,18 +35,23 @@ namespace Data.Persistence
                 entity.HasIndex(e => e.Sku)
                 .IsUnique();
                 entity.Property(e => e.Price)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnType("decimal(18,2)");
                 entity.Property(e => e.CategoryId)
                 .IsRequired();
                 entity.Ignore(e => e.Stock);
-
+                entity.Property(e =>e.IsActive)
+                .IsRequired()
+                .HasDefaultValue(true);
+                entity.Property(e => e.DeletedAt)
+                .IsRequired(false);
                 //Campos para auditoria
                 entity.Property<DateTime>("CreateAt")
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE");
+                .HasDefaultValueSql("now() at time zone 'utc'");
                 entity.Property<DateTime>("UpdateAt")
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE");
+                .HasDefaultValueSql("now() at time zone 'utc'");
             });
                 modelBuilder.Entity<LotsEntity>(entity =>
                 {
@@ -73,10 +75,10 @@ namespace Data.Persistence
                     //Campos para auditoria
                     entity.Property<DateTime>("CreateAt")
                     .IsRequired()
-                    .HasDefaultValueSql("GETUTCDATE");
+                    .HasDefaultValueSql("now() at time zone 'utc'");
                     entity.Property<DateTime>("UpdateAt")
                     .IsRequired()
-                    .HasDefaultValueSql("GETUTCDATE");
+                    .HasDefaultValueSql("now() at time zone 'utc'");
 
                     //Relación con ProductEntity
                     entity.HasOne(e => e.Product)
@@ -101,10 +103,10 @@ namespace Data.Persistence
                 //Campos para auditoria
                 entity.Property<DateTime>("CreateAt")
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE");
+                .HasDefaultValueSql("now() at time zone 'utc'");
                 entity.Property<DateTime>("UpdateAt")
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE");
+                .HasDefaultValueSql("now() at time zone 'utc'");
 
                 //Relación con ProductEntity
                 entity.HasOne(e => e.Product)
@@ -131,10 +133,10 @@ namespace Data.Persistence
                 //Campos para auditoria
                 entity.Property<DateTime>("CreateAt")
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE");
+                .HasDefaultValueSql("now() at time zone 'utc'");
                 entity.Property<DateTime>("UpdateAt")
                 .IsRequired()
-                .HasDefaultValueSql("GETUTCDATE");
+                .HasDefaultValueSql("now() at time zone 'utc'");
 
                 entity.HasMany(e => e.Details)
                     .WithOne(d => d.Sale)

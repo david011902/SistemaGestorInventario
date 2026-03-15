@@ -6,8 +6,8 @@ namespace Domain.Abstractions
 {
     public interface ISkuRepository<TEntity> where TEntity : class
     {
-        Task<TEntity> GetBySkuAsync(string sku);
+        Task<TEntity?> GetBySkuAsync(string sku);
 
-        Task<bool> ExistsWithCodeAsync(string sku);
+        Task<bool> ExistsWithSkuAsync(string sku);
     }
 }
