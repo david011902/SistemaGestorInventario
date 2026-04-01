@@ -20,18 +20,37 @@ namespace Data.Repositories
             if (string.IsNullOrWhiteSpace(folio)) return false;
 
             var normalizedFolio = folio.Trim().ToUpperInvariant();
-            return await _dbSet.AnyAsync(s => s.Folio.ToUpper() == normalizedFolio);
+            return await _dbSet.Include(s=>s.Details).AnyAsync(s => s.Folio.ToUpper() == normalizedFolio);
         }
 
         public async Task<SaleEntity?> GetByFolioAsync(string folio)
         {
-            if (string.IsNullOrWhiteSpace(folio)) return null;
-
             var normalizedFolio = folio.Trim().ToUpperInvariant();
-            return await _dbSet
-                .Include(s => s.Details) 
-                    .ThenInclude(sd => sd.Product) 
-                .FirstOrDefaultAsync(s => s.Folio.ToUpper() == normalizedFolio);
+
+            var sales = await _context.Sales
+                .Include(s => s.Details)
+                    .ThenInclude(sd => sd.Product)
+                .Where(s => s.Folio == normalizedFolio)
+                .ToListAsync();
+
+            return sales.FirstOrDefault();
+        }
+        public override async Task<SaleEntity?> GetByIdAsync(Guid id)
+        {
+                return await _context.Sales
+                .Include(s => s.Details)
+                    .ThenInclude(sd => sd.Product)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
+        public  override async Task<IEnumerable<SaleEntity>> GetAllAsync()
+        {
+            return await _context.Sales
+                .Include(s => s.Details)            
+                    .ThenInclude(d => d.Product)  
+                .AsNoTracking()                     
+                .OrderByDescending(s => s.Date)     
+                .ToListAsync();
         }
     }
 }

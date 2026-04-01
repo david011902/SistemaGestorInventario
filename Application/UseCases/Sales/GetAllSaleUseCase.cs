@@ -1,4 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Application.DTOs.Sales;
+using Domain.Abstractions;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,27 @@ namespace Application.UseCases.Sales
         {
             _repository = repository;
         }
-        public async Task<IEnumerable<SaleEntity>> ExecuteAsync()
+        public async Task<IEnumerable<ResponseSaleDto>> ExecuteAsync()
         {
-            return await _repository.GetAllAsync();
+            var sales = await _repository.GetAllAsync();
+            return sales.Select(sale => new ResponseSaleDto
+            {
+                Id = sale.Id,
+                Folio = sale.Folio,
+                Date = sale.Date,
+                Total = sale.Total,
+                Status = sale.Status.ToString(),
+                Details = sale.Details.Select(d => new ResponseDetailSaleDto
+                {
+                    Id = d.Id,
+                    Quantity = d.Quantity,
+                    PriceAtSale = d.PriceAtSale,
+                    Subtotal = d.Subtotal,
+                    ProductName = d.Product?.Name ?? "N/A",
+                    ProductSku = d.Product?.Sku ?? "N/A",
+                    LotId = d.LotId
+                }).ToList()
+            }).ToList();
         }
 
     }

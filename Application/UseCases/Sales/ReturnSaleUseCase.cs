@@ -1,4 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Application.DTOs.Sales;
+using Domain.Abstractions;
 using Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -18,28 +19,47 @@ namespace Application.UseCases.Sales
             _lotRepository = lotRepository;
         }
 
-        public async Task ExecuteAsync(string folio)
+        public async Task ExecuteAsync(string folio, List<ReturnItemDto> itemsToReturn)
         {
             var sale = await _saleRepository.GetByFolioAsync(folio);
-            if (sale == null)
-                throw new Exception($"No se encontró la venta con el folio: {folio}");
-            if (sale.Status == SaleStatus.Cancelled)
-                throw new InvalidOperationException("Esta venta ya ha sido cancelado");
 
-            if (sale.Details != null)
+            if (sale == null)
+                throw new InvalidOperationException($"No se encontró la venta con el folio: {folio}");
+
+            if (sale.Status == SaleStatus.Cancelled || sale.Status == SaleStatus.TotalReturn)
+                throw new InvalidOperationException("Esta venta ya no permite devoluciones.");
+
+            foreach (var itemDto in itemsToReturn)
             {
-                foreach (var detail in sale.Details)
+                // Buscar el detalle por SKU (asegúrate de incluir .Product en la consulta)
+                var detail = sale.Details.FirstOrDefault(d =>
+                    d.Product.Sku.Trim().ToUpper() == itemDto.ProductSku.Trim().ToUpper());
+
+                if (detail != null)
                 {
+                    //Aumentamos la cantidad devuelta en el detalle
+                    detail.ApplyReturn(itemDto.QuantityToReturn);
+
+                    //Devolvemos el stock físicamente al lote
                     var lot = await _lotRepository.GetByIdAsync(detail.LotId);
                     if (lot != null)
                     {
-                        lot.AddStock(detail.Quantity);
+                        lot.AddStock(itemDto.QuantityToReturn);
                         await _lotRepository.UpdateAsync(lot);
                     }
                 }
             }
 
-            sale.Cancel();
+            // Determinar nuevo estado de la venta
+            // Si la suma de cantidades devueltas es igual al total de la venta original -> TotalReturn
+            sale.UpdateTotal();
+
+            if (sale.Total == 0)
+                sale.MarkAsTotalReturn();
+            else
+                sale.MarkAsPartialReturn();
+
+            //Persistir cambios
             await _saleRepository.UpdateAsync(sale);
             await _saleRepository.SaveChangesAsync();
         }

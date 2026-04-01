@@ -9,7 +9,9 @@ namespace Application.DTOs.Products
         public string Name { get; set; } = string.Empty;
         public string Sku { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        public int CategoryId { get; set; }
-       
+        public Guid VehicleTypeId { get; set; }
+        public Guid? SocketTypeId { get; set; }
+        //public int CategoryId { get; set; }
+
     }
 }

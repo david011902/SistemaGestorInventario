@@ -26,8 +26,10 @@ namespace Application.UseCases.Products
             var product = new ProductEntity(
                 dto.Name, 
                 dto.Sku, 
-                dto.Price, 
-                dto.CategoryId
+                dto.Price,
+                dto.VehicleTypeId,
+                dto.SocketTypeId
+                //dto.CategoryId
                 );
 
             await _repository.AddAsync(product);

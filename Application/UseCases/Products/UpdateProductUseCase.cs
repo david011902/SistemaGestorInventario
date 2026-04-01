@@ -13,17 +13,28 @@ namespace Application.UseCases.Products
             _repository = repository;
         }
 
-        public async Task<ProductEntity?> ExecuteAsync(UpdateProductDto dto)
+        public async Task<ResponseProductDto?> ExecuteAsync(UpdateProductDto dto, Guid id)
         {
-            var person = await _repository.GetByIdAsync(dto.Id);
-            if (person == null)
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null)
             {
-                throw new InvalidOperationException($"No se encontro el producto con el id: {dto.Id}");
+                throw new InvalidOperationException($"No se encontro el producto con el id: {id}");
             }
-            person.UpdateProduct(dto.Name, dto.Price, dto.CategoryId);
-            await _repository.UpdateAsync(person);
+            product.UpdateProduct(dto.Name, dto.Price, dto.VehicleTypeId, dto.SocketTypeId);
+            
+            await _repository.UpdateAsync(product);
             await _repository.SaveChangesAsync();
-            return person;
+            return new ResponseProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Sku = product.Sku,
+                Price = product.Price,
+                VehicleTypeName = product.VehicleType?.NameVehicle ?? "No asignado",
+                SocketTypeName = product.SocketType?.NameSocket ?? "No asignado",
+                Stock = product.Stock,
+                IsActive = product.IsActive
+            };
 
         }
     }

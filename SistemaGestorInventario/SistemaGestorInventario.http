@@ -1,6 +1,6 @@
-@SistemaGestorInventario_HostAddress = http://localhost:5296
+@SistemaGestorInventario_HostAddress = https://localhost:7121
 
-GET {{SistemaGestorInventario_HostAddress}}/weatherforecast/
+GET {{SistemaGestorInventario_HostAddress}}/api/products/00000000-0000-0000-0000-00000000000
 Accept: application/json
 
 ###
