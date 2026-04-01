@@ -20,12 +20,17 @@ namespace Data.Repositories
                 .AnyAsync(p => p.Sku.ToUpper() == normalizedSku);
         }
 
+      
+
         public async Task<ProductEntity?> GetBySkuAsync(string sku)
         {
             if (string.IsNullOrWhiteSpace(sku)) return null;
             var normalizedSku = sku.Trim().ToUpperInvariant();
 
-            return await _context.Products.FirstOrDefaultAsync(p => p.Sku.ToUpper() == normalizedSku);
+            return await _context.Products
+                .Include(p=>p.VehicleType)
+                .Include(p=>p.SocketType)
+                .FirstOrDefaultAsync(p => p.Sku.ToUpper() == normalizedSku);
         }
     }
 }

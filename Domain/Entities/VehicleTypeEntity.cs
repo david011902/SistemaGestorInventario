@@ -4,25 +4,40 @@ using System.Text;
 
 namespace Domain.Entities
 {
-    public class VehicleType
+    public class VehicleTypeEntity
     {
-        public Guid id { get; private set; }
+        public Guid Id { get; private set; }
         public string NameVehicle { get; private set; } = string.Empty;
-        
-        public VehicleType(string nameVehicle)
+        public bool IsActive { get; private set; }
+        public DateTime? DeletedAt { get; private set; }
+        public VehicleTypeEntity(string nameVehicle)
         {
 
             ValidateNameVehicle(nameVehicle);
-            id = Guid.NewGuid();
-            NameVehicle = nameVehicle.Trim(); 
+            Id = Guid.NewGuid();
+            NameVehicle = nameVehicle.Trim();
+            IsActive = true;
         }
 
-        public void UpdateVehicle(string nameVehicle)
+        public void UpdateVehicle(string nameVehicle, bool isActive=true)
         {
             ValidateNameVehicle(nameVehicle);
             NameVehicle = nameVehicle.Trim();
+            IsActive = isActive;
         }
         //Regla de negocio
+        public void Activate()
+        {
+            IsActive = true;
+            DeletedAt = null;
+        }
+        public void Desactivate()
+        {
+            if (!IsActive)
+                throw new InvalidOperationException("El tipo de vehiculo ya se encuentra desactivado");
+            IsActive = false;
+            DeletedAt = DateTime.UtcNow;
+        }
         private void ValidateNameVehicle(string nameVehicle)
         {
             if (string.IsNullOrEmpty(nameVehicle))

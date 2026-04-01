@@ -9,6 +9,18 @@ namespace Data.Repositories
         public LotRepository(ApplicationDbContext context) : base(context)
         {
         }
+        public override async Task<IEnumerable<LotsEntity>> GetAllAsync()
+        {
+            return await _context.Lots
+                .Include(l => l.Product) 
+                    .ThenInclude(p => p.VehicleType)
+                .Include(l => l.Product)
+                    .ThenInclude(p => p.SocketType)
+                .Where(l => l.IsActive)
+                .AsNoTracking()
+                .OrderByDescending(l => l.ArrivateDate) // Ordenar por fecha de llegada
+                .ToListAsync();
+        }
         public async Task<IEnumerable<LotsEntity>> GetActiveLotsByProductIdAsync(Guid productId)
         {
             return await _context.Lots
@@ -19,6 +31,7 @@ namespace Data.Repositories
         public async Task<List<LotsEntity>> GetActiveLotsBySkuAsync(string sku)
         {
             return await _context.Lots
+                .Include(l=>l.Product)
                 .Where(l => l.Product.Sku == sku && l.IsActive)
                 .ToListAsync();
         }

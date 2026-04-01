@@ -23,7 +23,7 @@ namespace Application.UseCases.Sales
             _skuRepository = skuRepository;
         }
 
-        public async Task<Guid> ExecuteAsync(CreateSaleDto dto)
+        public async Task<ResponseSaleDto> ExecuteAsync(CreateSaleDto dto)
         {
             await _unitOfWork.BeginTransactionAsync();
             try {
@@ -42,7 +42,7 @@ namespace Application.UseCases.Sales
                     {
                         int quantityFromLot = Math.Min(l.CurrentAmount, remainingToSell);
 
-                        sale.AddDetail(l.ProductId, quantityFromLot, l.Product.Price);
+                        sale.AddDetail(l.ProductId,l.Id, quantityFromLot, l.Product.Price);
                         l.SubtractStock(quantityFromLot);
                         await _lotRepository.UpdateAsync(l);
 
@@ -53,7 +53,25 @@ namespace Application.UseCases.Sales
                 }
                 await _saleRepository.AddAsync(sale);
                 await _saleRepository.SaveChangesAsync();
-                return sale.Id;
+                await _unitOfWork.CommitTransactionAsync();
+                return new ResponseSaleDto
+                {
+                    Id = sale.Id,
+                    Folio = sale.Folio,
+                    Date = sale.Date,
+                    Total = sale.Total,
+                    Status = sale.Status.ToString(),
+                    Details = sale.Details.Select(d => new ResponseDetailSaleDto
+                    {
+                        Id = d.Id,
+                        Quantity = d.Quantity,
+                        PriceAtSale = d.PriceAtSale,
+                        Subtotal = d.Subtotal,
+                        ProductName = d.Product?.Name ?? "N/A", 
+                        ProductSku = d.Product?.Sku ?? "N/A",
+                        LotId = d.LotId
+                    }).ToList(),
+                };
             }
             catch { 
                 await _unitOfWork.RollbackTransactionAsync();

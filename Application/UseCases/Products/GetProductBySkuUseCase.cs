@@ -1,4 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Application.DTOs.Products;
+using Domain.Abstractions;
 using Domain.Entities;
 
 
@@ -13,14 +14,24 @@ namespace Application.UseCases.Products
             _repository = repository;
         }
 
-        public async Task<ProductEntity?> ExecuteAsync(string sku)
+        public async Task<ResponseProductDto?> ExecuteAsync(string sku)
         {
-            var product = await _repository.GetBySkuAsync(sku);
-            if (product == null)
+            var products = await _repository.GetBySkuAsync(sku);
+            if(products == null)
             {
-                throw new InvalidOperationException($"No se encontró un producto con el sku: {sku}");
+                return null;
             }
-            return product;
+            return  new ResponseProductDto
+            {
+                Id = products.Id,
+                Name = products.Name,
+                Sku = products.Sku,
+                Price = products.Price,
+                VehicleTypeName = products.VehicleType?.NameVehicle ?? "No asignado",
+                SocketTypeName = products.SocketType?.NameSocket ?? "No asignado",
+                Stock = products.Stock,
+                IsActive = products.IsActive
+            };
         }
     }
 }

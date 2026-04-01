@@ -20,7 +20,7 @@ namespace Application.UseCases.Inventory
             _unitOfWork = unitOfWork;
         }
 
-        public async Task ExecuteAsync(CreateLotDto dto)
+        public async Task<LotsEntity> ExecuteAsync(CreateLotDto dto)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -34,6 +34,7 @@ namespace Application.UseCases.Inventory
                 await _lotRepository.AddAsync(lot);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();
+                return lot;
             }
             catch (Exception)
             {

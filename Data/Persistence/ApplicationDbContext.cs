@@ -6,7 +6,7 @@ namespace Data.Persistence
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
         }
@@ -15,6 +15,9 @@ namespace Data.Persistence
         public DbSet<LotsEntity> Lots { get; set; }
         public DbSet<SaleDetailEntity> SaleDetail { get; set; }
         public DbSet<SaleEntity> Sales { get; set; }
+        public DbSet<VehicleTypeEntity> VehicleTypes { get; set; }
+        public DbSet<SocketTypeEntity> SocketTypes { get; set; }
+
 
         //sobreescribir un metodo, especificar la estructura 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,8 +40,19 @@ namespace Data.Persistence
                 entity.Property(e => e.Price)
                 .IsRequired()
                 .HasColumnType("decimal(18,2)");
-                entity.Property(e => e.CategoryId)
-                .IsRequired();
+                //entity.Property(e => e.CategoryId)
+                //.IsRequired();
+                entity.HasOne(p=>p.VehicleType)
+                .WithMany()
+                .HasForeignKey(p => p.VehicleTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+                entity.Property(e => e.VehicleTypeId);
+                entity.HasOne(p => p.SocketType)
+               .WithMany()
+               .HasForeignKey(p => p.SocketTypeId)
+               .IsRequired(false)
+               .OnDelete(DeleteBehavior.SetNull);
+                entity.Property(e => e.SocketTypeId);
                 entity.Ignore(e => e.Stock);
                 entity.Property(e =>e.IsActive)
                 .IsRequired()
@@ -99,7 +113,21 @@ namespace Data.Persistence
                 entity.Property(e => e.Quantity)
                 .IsRequired();
                 entity.Property(e => e.PriceAtSale)
+                .HasPrecision(18,2)
                 .IsRequired();
+                entity.HasOne(d => d.Sale)
+                .WithMany(s => s.Details)
+                .HasForeignKey(d => d.SaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Product)
+                .WithMany(p => p.SaleDetails)
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.ReturnedQuantity)
+                .IsRequired()
+                .HasDefaultValue(0);
+                entity.Ignore(e => e.Subtotal);
+                entity.Ignore(e => e.EffectiveQuantity);
                 //Campos para auditoria
                 entity.Property<DateTime>("CreateAt")
                 .IsRequired()
@@ -108,12 +136,7 @@ namespace Data.Persistence
                 .IsRequired()
                 .HasDefaultValueSql("now() at time zone 'utc'");
 
-                //Relación con ProductEntity
-                entity.HasOne(e => e.Product)
-                    .WithMany(p => p.SaleDetails)
-                    .HasForeignKey(e => e.ProductId)
-                    .OnDelete(DeleteBehavior.Cascade);
-    
+              
             });
             modelBuilder.Entity<SaleEntity>(entity =>
             {
@@ -127,6 +150,7 @@ namespace Data.Persistence
                 entity.Property(e => e.Folio)
                 .IsRequired();
                 entity.Property(e => e.Total)
+                .HasPrecision(18, 2)
                 .IsRequired();
                 entity.Property(e => e.Status)
                 .IsRequired();
@@ -143,8 +167,50 @@ namespace Data.Persistence
                     .HasForeignKey(d => d.SaleId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                entity.Navigation(e => e.Details)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+            });
+
+            modelBuilder.Entity<VehicleTypeEntity>(entity =>
+            {
+                entity.ToTable("VehicleType");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id)
+                .IsRequired().ValueGeneratedOnAdd();
+
+               entity.Property(e => e.NameVehicle)
+              .IsRequired()
+              .HasMaxLength(100);
+
+                //Campos para auditoria
+                entity.Property<DateTime>("CreateAt")
+                    .IsRequired()
+                    .HasDefaultValueSql("now() at time zone 'utc'");
+                entity.Property<DateTime>("UpdateAt")
+                    .IsRequired()
+                    .HasDefaultValueSql("now() at time zone 'utc'");
+            });
+
+            modelBuilder.Entity<SocketTypeEntity>(entity =>
+            {
+                entity.ToTable("SocketType");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id)
+                .IsRequired().ValueGeneratedOnAdd();
+
+                entity.Property(e => e.NameSocket)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                //Campos para auditoria
+                entity.Property<DateTime>("CreateAt")
+                .IsRequired()
+                .HasDefaultValueSql("now() at time zone 'utc'");
+                entity.Property<DateTime>("UpdateAt")
+                .IsRequired()
+                .HasDefaultValueSql("now() at time zone 'utc'");
             });
         }
+        
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

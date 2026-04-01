@@ -26,7 +26,7 @@ namespace Data.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<TEntity?> GetByIdAsync(TKey id)
+        public virtual async Task<TEntity?> GetByIdAsync(TKey id)
         {
             return await _dbSet.FindAsync(id);
         }

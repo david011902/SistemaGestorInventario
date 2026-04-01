@@ -1,4 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Application.DTOs.Products;
+using Domain.Abstractions;
 using Domain.Entities;
 
 
@@ -13,9 +14,20 @@ namespace Application.UseCases.Products
             _repository = repository;
         }
 
-        public async Task<IEnumerable<ProductEntity>> ExecuteAsync()
+        public async Task<IEnumerable<ResponseProductDto>> ExecuteAsync()
         {
-            return await _repository.GetAllAsync();
+            var products = await _repository.GetAllAsync();
+            return products.Select(p => new ResponseProductDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Sku = p.Sku,
+                Price = p.Price,
+                VehicleTypeName = p.VehicleType?.NameVehicle?? "No asignado",
+                SocketTypeName = p.SocketType?.NameSocket?? "No asignado",
+                Stock = p.Stock,
+                IsActive = p.IsActive
+            });
         }
 
     }
