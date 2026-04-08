@@ -35,5 +35,14 @@ namespace Data.Repositories
                 .Where(l => l.Product.Sku == sku && l.IsActive)
                 .ToListAsync();
         }
+        public override async Task<LotsEntity?> GetByIdAsync(Guid id)
+        {
+            return await _context.Lots
+                .Include(l => l.Product) 
+                    .ThenInclude(p => p.VehicleType) 
+                .Include(l => l.Product)
+                    .ThenInclude(p => p.SocketType) 
+                .FirstOrDefaultAsync(l => l.Id == id);
+        }
     }
 }

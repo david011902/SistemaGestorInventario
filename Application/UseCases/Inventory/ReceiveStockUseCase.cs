@@ -30,7 +30,7 @@ namespace Application.UseCases.Inventory
                 {
                     throw new InvalidOperationException($"No se encontro un producto con el id: {dto.ProductId} ");
                 }
-                var lot = new LotsEntity(dto.ProductId, dto.InitialAmount, dto.PurchaseCost, dto.ArrivatelDate, dto.Supplier);
+                var lot = new LotsEntity(dto.ProductId, dto.InitialAmount, dto.PurchaseCost, dto.Supplier);
                 await _lotRepository.AddAsync(lot);
                 await _unitOfWork.SaveChangesAsync();
                 await _unitOfWork.CommitTransactionAsync();

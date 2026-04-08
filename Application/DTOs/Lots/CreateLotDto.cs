@@ -9,7 +9,6 @@ namespace Application.DTOs.Lots
         public Guid ProductId { get; set; }
         public int InitialAmount { get; set; }
         public decimal PurchaseCost { get; set; }
-        public DateTime ArrivatelDate { get; set; }
         public string? Supplier { get; set; }
     }
 }

@@ -70,7 +70,7 @@ namespace SistemaGestorInventario.Endpoints
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);
 
-            group.MapPut("/folio{folio}", async (ReturnSaleUseCase useCase, string folio, [FromBody] List<ReturnItemDto> returnItemDtos) =>
+            group.MapPut("/folio/{folio}", async (string folio, [FromBody] List<ReturnItemDto> returnItemDtos, ReturnSaleUseCase useCase) =>
             {
                 try
                 {
@@ -99,7 +99,7 @@ namespace SistemaGestorInventario.Endpoints
             .Produces(StatusCodes.Status500InternalServerError);
 
 
-            group.MapGet("/folios{folio}", async (GetSaleByFolioUseCase useCase, string folio) =>
+            group.MapGet("/folios/{folio}", async (GetSaleByFolioUseCase useCase, string folio) =>
             {
                 try
                 {
