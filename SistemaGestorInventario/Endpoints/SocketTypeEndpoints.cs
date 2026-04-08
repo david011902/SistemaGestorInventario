@@ -2,6 +2,7 @@
 using Application.DTOs.VehiclesType;
 using Application.UseCases.Sockets;
 using Application.UseCases.Vehicles;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaGestorInventario.Endpoints
 {
@@ -11,7 +12,7 @@ namespace SistemaGestorInventario.Endpoints
         {
             var group = app.MapGroup("/api/sockettypes").WithTags("SocketTypes");
 
-            group.MapGet("/{id:guid}", async (Guid id, GetSocketByIdUseCase useCase) =>
+            group.MapGet("/{id:guid}", async (Guid id, [FromServices] GetSocketByIdUseCase useCase) =>
             {
                 try
                 {

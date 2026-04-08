@@ -6,10 +6,10 @@ namespace Domain.Enums
 {
     public enum SaleStatus
     {
-        Pending = 0,
-        Completed = 1,
-        PartialReturn = 2,
-        TotalReturn = 3,
-        Cancelled = 4,
+        Pendiente = 0,
+        Completado = 1,
+        ReembolsoParcial = 2,
+        ReembolsoTotal = 3,
+        Cancelado = 4,
     }
 }

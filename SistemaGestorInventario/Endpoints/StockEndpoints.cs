@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Lots;
 using Application.UseCases.Inventory;
+using Microsoft.AspNetCore.Mvc;
 
 namespace SistemaGestorInventario.Endpoints
 {
@@ -9,7 +10,7 @@ namespace SistemaGestorInventario.Endpoints
         {
             var group = app.MapGroup("/api/stock").WithTags("Stock");
 
-            group.MapPut("/{id:guid}", async (AdjustStockUseCase useCase, Guid id, UpdateLotDto dto) =>
+            group.MapPut("/{id:guid}", async (Guid id, UpdateLotDto dto, AdjustStockUseCase useCase) =>
             {
                 try
                 {
@@ -78,6 +79,29 @@ namespace SistemaGestorInventario.Endpoints
                .WithSummary("Obtener todos los lotes")
                .Produces(StatusCodes.Status200OK)
                .Produces(StatusCodes.Status500InternalServerError);
-        }
+
+            group.MapGet("/search/{id:guid}", async (Guid id, [FromServices] GetStockByIdUseCase useCase) =>
+            {
+                try
+                {
+                    var lot = await useCase.ExecuteAsync(id);
+                    return Results.Ok(lot);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Results.NotFound(new { error = ex.Message });
+                }
+                catch (Exception ex)
+                {
+                    return Results.InternalServerError(new { error = ex.Message });
+                }
+            })
+                .WithName("GetLotById")
+                .WithSummary("Obtener un lote por su id")
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status404NotFound);
+                        }
+
+       
     }
 }

@@ -25,12 +25,12 @@ namespace Domain.Entities
             Date = DateTime.UtcNow;
             Folio = folio.Trim().ToUpper();
             Total = 0;
-            Status = SaleStatus.Pending;
+            Status = SaleStatus.Completado;
         }
 
         public void Cancel()
         {
-            Status = SaleStatus.Cancelled;
+            Status = SaleStatus.Cancelado;
         }
         //Reglas de negocio
         public void AddDetail(Guid productId, Guid lotId, int quantity, decimal unitPrice)
@@ -56,18 +56,18 @@ namespace Domain.Entities
         }
         public void MarkAsPartialReturn()
         {
-            if (Status == SaleStatus.Cancelled || Status == SaleStatus.TotalReturn)
+            if (Status == SaleStatus.Cancelado || Status == SaleStatus.ReembolsoTotal)
                 throw new InvalidOperationException("No se puede realizar una devolución parcial de una venta cancelada o devuelta totalmente.");
 
-            Status = SaleStatus.PartialReturn;
+            Status = SaleStatus.ReembolsoParcial;
         }
 
         public void MarkAsTotalReturn()
         {
-            if (Status == SaleStatus.Cancelled)
+            if (Status == SaleStatus.Cancelado)
                 throw new InvalidOperationException("La venta ya está cancelada.");
 
-            Status = SaleStatus.TotalReturn;
+            Status = SaleStatus.ReembolsoTotal;
         }
     }
 }

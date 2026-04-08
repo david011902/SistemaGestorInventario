@@ -33,6 +33,7 @@ builder.Services.AddScoped<UpdateProductUseCase>();
 builder.Services.AddScoped<AdjustStockUseCase>();
 builder.Services.AddScoped<ReceiveStockUseCase>();
 builder.Services.AddScoped<GetAllStockUseCase>();
+builder.Services.AddScoped<GetStockByIdUseCase>();
 
 builder.Services.AddScoped<CreateSaleUseCase>();
 builder.Services.AddScoped<GetAllSaleUseCase>();
@@ -76,6 +77,19 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.WriteIndented = true;
 });
 
+//Cors para acceder desde angular
+var misReglasCors = "ReglasAngular";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: misReglasCors, builder =>
+    {
+        builder.WithOrigins("http://localhost:4200") 
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+builder.Services.AddControllers();
 //Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();   
@@ -91,7 +105,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors(misReglasCors);
 //Inyecccion de dependencias de los endpoints
 app.MapProductsEndpoints();
 app.MapVehicleTypeEndpoints();

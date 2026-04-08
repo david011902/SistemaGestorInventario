@@ -1,4 +1,5 @@
-﻿using Domain.Abstractions;
+﻿using Application.DTOs.Lots;
+using Domain.Abstractions;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -15,10 +16,10 @@ namespace Application.UseCases.Inventory
             _lotRepository = lotRepository;
         }
 
-        public async Task<IEnumerable<LotsEntity>> ExecuteAsync()
+        public async Task<IEnumerable<ResponseLotDto>> ExecuteAsync()
         {
             var lots = await _lotRepository.GetAllAsync();
-            return lots;
+            return lots.Select(LotMapper.ToDto);
         }
     }
 }

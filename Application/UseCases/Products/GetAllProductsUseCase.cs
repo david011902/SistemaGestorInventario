@@ -25,6 +25,8 @@ namespace Application.UseCases.Products
                 Price = p.Price,
                 VehicleTypeName = p.VehicleType?.NameVehicle?? "No asignado",
                 SocketTypeName = p.SocketType?.NameSocket?? "No asignado",
+                VehicleTypeId = p.VehicleTypeId,
+                SocketTypeId = p.SocketTypeId,
                 Stock = p.Stock,
                 IsActive = p.IsActive
             });

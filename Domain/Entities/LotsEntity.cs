@@ -17,28 +17,25 @@ namespace Domain.Entities
 
         public virtual ProductEntity Product { get; private set; } = null!; // Relación con el producto
 
-       public LotsEntity(Guid productId, int initialAmount, decimal purchaseCost, DateTime arrivateDate, string? supplier)
+       public LotsEntity(Guid productId, int initialAmount, decimal purchaseCost, string? supplier)
         {
             ValidateInitialAmount(initialAmount);
             ValidatePurchaseCost(purchaseCost);
-            ValidateArrivalDate(arrivateDate);
             Id = Guid.NewGuid();
             this.ProductId = productId;
             this.InitialAmount = initialAmount;
             this.CurrentAmount = initialAmount; // Al crear un lote, la cantidad actual es igual a la cantidad inicial
             this.PurchaseCost = purchaseCost;
-            this.ArrivateDate = arrivateDate;
+            this.ArrivateDate = DateTime.UtcNow;
             this.Supplier = supplier?.Trim();
             this.IsActive = true; // Por defecto, un lote recién creado está activo
         }
 
-        public void UpdateLot(int initialAmount, decimal purchaseCost, DateTime arrivateDate, string? supplier)
+        public void UpdateLot(int initialAmount, decimal purchaseCost, string? supplier)
         {
             ValidateInitialAmount(initialAmount);
             ValidatePurchaseCost(purchaseCost);
-            ValidateArrivalDate(arrivateDate);
             this.PurchaseCost = purchaseCost;
-            this.ArrivateDate = arrivateDate;
             this.Supplier = supplier?.Trim();
         }
 

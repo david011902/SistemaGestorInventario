@@ -148,10 +148,15 @@ namespace SistemaGestorInventario.Endpoints
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
 
-            group.MapGet("/name{name}", async (string name, GetProductByNameUseCase useCase) =>
+            group.MapGet("/search", async (string? name, GetProductByNameUseCase useCase) =>
             {
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return Results.BadRequest(new { error = "El parámetro 'name' es obligatorio." });
+                }
                 try
                 {
+                  
                     var product = await useCase.ExecuteAsync(name);
                     return Results.Ok(product);
                 }

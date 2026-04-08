@@ -26,7 +26,7 @@ namespace Application.UseCases.Sales
             if (sale == null)
                 throw new InvalidOperationException($"No se encontró la venta con el folio: {folio}");
 
-            if (sale.Status == SaleStatus.Cancelled || sale.Status == SaleStatus.TotalReturn)
+            if (sale.Status == SaleStatus.Cancelado || sale.Status == SaleStatus.ReembolsoTotal)
                 throw new InvalidOperationException("Esta venta ya no permite devoluciones.");
 
             foreach (var itemDto in itemsToReturn)
