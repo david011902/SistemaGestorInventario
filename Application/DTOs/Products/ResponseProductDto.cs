@@ -12,6 +12,8 @@ namespace Application.DTOs.Products
         public decimal Price { get; set; }
         public string VehicleTypeName { get; set; } = string.Empty; // Solo el nombre
         public string SocketTypeName { get; set; } = string.Empty;  // Solo el nombre
+        public Guid? VehicleTypeId { get; set; }
+        public Guid? SocketTypeId { get; set; }
         public int Stock { get; set; }
         public bool IsActive { get; set; }
     }
