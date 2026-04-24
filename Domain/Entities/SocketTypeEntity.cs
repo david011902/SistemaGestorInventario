@@ -40,7 +40,7 @@ namespace Domain.Entities
                 throw new ArgumentException("El nombre no puede estar vacío.");
             if (nameSocket.Trim().Length < 2)
                 throw new ArgumentException("El nombre debe tener al menos 3 caracteres.", nameof(nameSocket));
-            if (nameSocket.Trim().Length > 20)
+            if (nameSocket.Trim().Length > 100)
                 throw new ArgumentException("El nombre no debe ser mayor a 100 caracteres", nameof(nameSocket));
         }
     }

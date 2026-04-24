@@ -26,8 +26,6 @@ namespace Domain.Entities
         private readonly List<LotsEntity> _lots = new();
         public virtual IReadOnlyCollection<LotsEntity> Lots => _lots;
         public int Stock => _lots.Sum(l => l.CurrentAmount);
-
-        // Added collection for sale details
         private readonly List<SaleDetailEntity> _saleDetails = new();
         public virtual IReadOnlyCollection<SaleDetailEntity> SaleDetails => _saleDetails;
         //Constructor 

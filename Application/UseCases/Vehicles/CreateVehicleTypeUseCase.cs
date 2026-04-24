@@ -1,9 +1,7 @@
 ﻿using Application.DTOs.VehiclesType;
 using Domain.Abstractions;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace Application.UseCases.Vehicles
 {

@@ -1,9 +1,6 @@
 ﻿using Application.DTOs.Lots;
 using Domain.Abstractions;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.UseCases.Inventory
 {
@@ -22,23 +19,24 @@ namespace Application.UseCases.Inventory
 
         public async Task<LotsEntity> ExecuteAsync(CreateLotDto dto)
         {
-            await _unitOfWork.BeginTransactionAsync();
             try
             {
                 var product = await _Repository.GetByIdAsync(dto.ProductId);
                 if (product == null)
                 {
-                    throw new InvalidOperationException($"No se encontro un producto con el id: {dto.ProductId} ");
+                    throw new InvalidOperationException($"No se encontró un producto con el id: {dto.ProductId}");
                 }
+
                 var lot = new LotsEntity(dto.ProductId, dto.InitialAmount, dto.PurchaseCost, dto.Supplier);
                 await _lotRepository.AddAsync(lot);
+
+                
                 await _unitOfWork.SaveChangesAsync();
-                await _unitOfWork.CommitTransactionAsync();
+
                 return lot;
             }
             catch (Exception)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
+            { 
                 throw;
             }
 
