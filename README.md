@@ -72,7 +72,7 @@ mediante migraciones.
 - **Seguridad Robusta:** Implementación de JWT para proteger los endpoints según el rol del usuario.
 - **Persistencia Confiable:** Uso de PostgreSQL con migraciones gestionadas por EF Core.
 
-## ⚙️ Variables de entorno
+## Variables de entorno
 
 ---
 
