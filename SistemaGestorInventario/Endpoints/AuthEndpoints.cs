@@ -60,7 +60,6 @@ namespace SistemaGestorInventario.Endpoints
             {
                 try
                 {
-                    // Map endpoint request to application DTO
                     var dto = new LoginRequestDto
                     {
                         Email = request.Email,
@@ -93,7 +92,6 @@ namespace SistemaGestorInventario.Endpoints
             {
                 try
                 {
-                    // Map endpoint request to application DTO
                     var dto = new RefreshRequestDto
                     {
                         RefreshToken = request.RefreshToken
@@ -144,7 +142,6 @@ namespace SistemaGestorInventario.Endpoints
         }
 
     }
-    //Request records
     public record RegisterRequest(string Name, string Email, string Password);
     public record LoginRequest(string Email, string Password);
     public record RefreshRequest(string RefreshToken);

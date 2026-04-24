@@ -1,5 +1,6 @@
 ﻿using Data.Persistence;
 using Domain.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -61,5 +62,30 @@ namespace Data.Repositories
         {
             return await _context.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task ExecuteTransactionAsync(Func<Task> action)
+        {
+            // Obtenemos la estrategia de ejecución configurada en el DbContext
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            await strategy.ExecuteAsync(async () =>
+            {
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        await action(); // Ejecuta la lógica del caso de uso
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                }
+            });
+        }
+
     }
 }

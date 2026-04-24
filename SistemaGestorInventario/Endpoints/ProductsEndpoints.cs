@@ -10,7 +10,8 @@ namespace SistemaGestorInventario.Endpoints
         public static void MapProductsEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/products")
-                .WithTags("Products");//Para agrupar los endpoints en la documentacion de swagger
+                .WithTags("Products")
+                .RequireAuthorization();//Para agrupar los endpoints en la documentacion de swagger
 
             group.MapGet("/{id:guid}", async (Guid id, GetProductByIdUseCase useCase) =>
             {
@@ -23,10 +24,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.NotFound(new { error = ex.Message });
                 }
-            }).WithName("GetProductById")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("GetProductById")
             .WithSummary("Obtener un producto por su id")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests);
 
 
             group.MapPost("/", async (CreateProductDto dto, CreateProductUseCase useCase) =>
@@ -48,10 +52,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(ex.Message);
                 }
-            }).WithName("CreateProduct")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("CreateProduct")
             .WithSummary("Crea un producto nuevo")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -67,10 +74,12 @@ namespace SistemaGestorInventario.Endpoints
                     return Results.InternalServerError(new { error = ex.Message });
                 }
 
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+                .RequireRateLimiting("peticiones-limite")
                 .WithName("GetAllProducts")
                 .WithSummary("Obtener todos los productos")
                 .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status429TooManyRequests)
                 .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -95,12 +104,14 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
             .WithName("UpdateProduct")
             .WithSummary("Actualizar un producto en existencia")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -120,10 +131,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("DeleteProduct")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+              .RequireRateLimiting("peticiones-limite")
+              .WithName("DeleteProduct")
               .WithSummary("Eliminar un producto")
               .Produces(StatusCodes.Status204NoContent)
               .Produces(StatusCodes.Status404NotFound)
+              .Produces(StatusCodes.Status429TooManyRequests)
               .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -142,10 +156,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("BuscarProductoSKU")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("BuscarProductoSKU")
             .WithSummary("Buscar un producto por SKU")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/search", async (string? name, GetProductByNameUseCase useCase) =>
@@ -168,10 +185,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("BuscarProductoNombre")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+           .RequireRateLimiting("peticiones-limite")
+           .WithName("BuscarProductoNombre")
            .WithSummary("Buscar un producto por Nombre")
            .Produces(StatusCodes.Status200OK)
            .Produces(StatusCodes.Status404NotFound)
+           .Produces(StatusCodes.Status429TooManyRequests)
            .Produces(StatusCodes.Status500InternalServerError);
         }
     }

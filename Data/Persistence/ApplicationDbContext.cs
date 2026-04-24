@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -17,8 +18,7 @@ namespace Data.Persistence
         public DbSet<SaleEntity> Sales { get; set; }
         public DbSet<VehicleTypeEntity> VehicleTypes { get; set; }
         public DbSet<SocketTypeEntity> SocketTypes { get; set; }
-
-
+        public DbSet<UserEntity> Users => Set<UserEntity>();
         //sobreescribir un metodo, especificar la estructura 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -208,6 +208,45 @@ namespace Data.Persistence
                 entity.Property<DateTime>("UpdateAt")
                 .IsRequired()
                 .HasDefaultValueSql("now() at time zone 'utc'");
+            });
+
+            modelBuilder.Entity<UserEntity>(entity =>
+            {
+                // Tabla users
+                entity.ToTable("users");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .IsRequired()
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasIndex(e => e.Email)
+                    .IsUnique();
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.PasswordHash)
+                    .IsRequired();
+
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasConversion<string>()         
+                    .HasDefaultValue(UserRole.Employee);
+
+                // Campos para auditoria
+                entity.Property<DateTime>("CreateAt")
+                .IsRequired()
+                .HasDefaultValueSql("now() at time zone 'utc'");
+
+                entity.Property<DateTime>("UpdateAt")
+                    .IsRequired()
+                    .HasDefaultValueSql("now() at time zone 'utc'");
             });
         }
         

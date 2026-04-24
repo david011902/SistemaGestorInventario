@@ -13,7 +13,6 @@ namespace Domain.Entities
         public string Folio { get; private set; } = string.Empty;
         public decimal Total { get; private set; }
         public SaleStatus Status { get; private set; }
-        //public virtual SaleEntity Sale { get; private set; } = null!;
         //Relacion de una venta, ya que se puede comprar mas de un articulo
         private readonly List<SaleDetailEntity> _details = new List<SaleDetailEntity>();
         public IReadOnlyCollection<SaleDetailEntity> Details => _details;
