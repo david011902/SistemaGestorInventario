@@ -144,8 +144,8 @@ La API usa **JWT Bearer Tokens**. Para acceder a los endpoints protegidos:
 
 ---
 
-## Autor)
+## Autor
 
-**[David Acosta]**  
+**David Acosta**  
 Ingeniero en Sistemas Computacionales  
 [GitHub](https://github.com/david011902)
