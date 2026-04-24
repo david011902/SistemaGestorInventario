@@ -53,8 +53,7 @@ frente a los controladores tradicionales manteniendo la separación de responsab
 ### Rate Limiting
 
 La API incluye límite de peticiones por IP usando el middleware nativo de
-ASP.NET Core, para proteger los endpoints públicos (login, registro) de
-ataques de fuerza bruta.
+ASP.NET Core, para proteger los endpoints públicos de ataques de fuerza bruta.
 
 ## Documentación de la API
 
