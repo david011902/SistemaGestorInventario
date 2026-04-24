@@ -8,7 +8,7 @@ namespace SistemaGestorInventario.Endpoints
     {
         public static void MapStockEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/stock").WithTags("Stock");
+            var group = app.MapGroup("/api/stock").WithTags("Stock").RequireAuthorization();
 
             group.MapPut("/{id:guid}", async (Guid id, UpdateLotDto dto, AdjustStockUseCase useCase) =>
             {
@@ -31,11 +31,14 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("UpdateStock")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("UpdateStock")
             .WithSummary("Actualizar stock en existencia")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -58,10 +61,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(ex.Message);
                 }
-            }).WithName("CreateLot")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("CreateLot")
             .WithSummary("Crea un lote nuevo")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/", async (GetAllStockUseCase useCase) =>
@@ -75,9 +81,12 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("GetAllLots")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+               .RequireRateLimiting("peticiones-limite")
+               .WithName("GetAllLots")
                .WithSummary("Obtener todos los lotes")
                .Produces(StatusCodes.Status200OK)
+               .Produces(StatusCodes.Status429TooManyRequests)
                .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/search/{id:guid}", async (Guid id, [FromServices] GetStockByIdUseCase useCase) =>
@@ -95,10 +104,12 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+                .RequireRateLimiting("peticiones-limite")
                 .WithName("GetLotById")
                 .WithSummary("Obtener un lote por su id")
                 .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status429TooManyRequests)
                 .Produces(StatusCodes.Status404NotFound);
                         }
 

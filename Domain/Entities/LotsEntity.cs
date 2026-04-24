@@ -68,10 +68,5 @@ namespace Domain.Entities
             if (purchaseCost < 0)
                 throw new ArgumentException("El costo de compra no puede ser negativo.", nameof(purchaseCost));
         }
-        private void ValidateArrivalDate(DateTime date)
-        {
-            if (date > DateTime.Now.AddDays(1))
-                throw new ArgumentException("La fecha de llegada no puede ser futura.");
-        }
     }
 }

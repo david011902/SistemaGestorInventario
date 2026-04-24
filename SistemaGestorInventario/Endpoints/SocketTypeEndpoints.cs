@@ -10,7 +10,7 @@ namespace SistemaGestorInventario.Endpoints
     {
         public static void MapSocketTypeEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/sockettypes").WithTags("SocketTypes");
+            var group = app.MapGroup("/api/sockettypes").WithTags("SocketTypes").RequireAuthorization();
 
             group.MapGet("/{id:guid}", async (Guid id, [FromServices] GetSocketByIdUseCase useCase) =>
             {
@@ -23,10 +23,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.NotFound(new { error = ex.Message });
                 }
-            }).WithName("GetSocketTypeById")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("GetSocketTypeById")
             .WithSummary("Obtener un tipo de socket por su id")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests);
 
 
             group.MapPost("/", async (CreateSocketTypeDto dto, CreateSocketTypeUseCase useCase) =>
@@ -48,10 +51,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(ex.Message);
                 }
-            }).WithName("CreateSocketType")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+           .RequireRateLimiting("peticiones-limite")
+           .WithName("CreateSocketType")
            .WithSummary("Crea un tipo de socket nuevo")
            .Produces(StatusCodes.Status201Created)
            .Produces(StatusCodes.Status400BadRequest)
+           .Produces(StatusCodes.Status429TooManyRequests)
            .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -67,10 +73,12 @@ namespace SistemaGestorInventario.Endpoints
                     return Results.InternalServerError(new { error = ex.Message });
                 }
 
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+               .RequireRateLimiting("peticiones-limite")
                .WithName("GetAllSocketType")
                .WithSummary("Obtener todos los tipos de sockets")
                .Produces(StatusCodes.Status200OK)
+               .Produces(StatusCodes.Status429TooManyRequests)
                .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapPut("/{id:guid}", async (Guid id, UpdateSocketTypeDto dto, UpdateSocketTypeUseCase useCase) =>
@@ -94,12 +102,14 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
             .WithName("UpdateSocket")
             .WithSummary("Actualizar un tipo de socket en existencia")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapDelete("/{id:guid}", async (Guid id, DeleteSocketTypeUseCase useCase) =>
@@ -118,10 +128,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("DeleteSocketType")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+             .RequireRateLimiting("peticiones-limite")
+             .WithName("DeleteSocketType")
              .WithSummary("Eliminar un tipo de socket")
              .Produces(StatusCodes.Status204NoContent)
              .Produces(StatusCodes.Status404NotFound)
+             .Produces(StatusCodes.Status429TooManyRequests)
              .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/name{name}", async (string name, GetSocketTypeByNombreUseCase useCase) =>
@@ -139,10 +152,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("BuscarTipoDeSocketNombre")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+          .RequireRateLimiting("peticiones-limite")
+          .WithName("BuscarTipoDeSocketNombre")
           .WithSummary("Buscar un tipo de socket por nombre")
           .Produces(StatusCodes.Status200OK)
           .Produces(StatusCodes.Status404NotFound)
+          .Produces(StatusCodes.Status429TooManyRequests)
           .Produces(StatusCodes.Status500InternalServerError);
         }
     }

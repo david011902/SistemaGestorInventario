@@ -9,7 +9,7 @@ namespace SistemaGestorInventario.Endpoints
     {
         public static void MapSalesEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/sales").WithTags("Sales");
+            var group = app.MapGroup("/api/sales").WithTags("Sales").RequireAuthorization();
 
             group.MapGet("/{id:guid}", async (Guid id, GetSaleByIdUseCase useCase) =>
             {
@@ -22,10 +22,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.NotFound(new { error = ex.Message });
                 }
-            }).WithName("GetSaleById")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("GetSaleById")
             .WithSummary("Obtener una venta por su id")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests);
 
 
             group.MapPost("/", async (CreateSaleDto dto, CreateSaleUseCase useCase) =>
@@ -47,10 +50,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(ex.Message);
                 }
-            }).WithName("CreateSale")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("CreateSale")
             .WithSummary("Crear un venta nueva")
             .Produces(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -65,9 +71,12 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("GetAllSales")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("GetAllSales")
             .WithSummary("Obtener todas las ventas")
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapPut("/folio/{folio}", async (string folio, [FromBody] List<ReturnItemDto> returnItemDtos, ReturnSaleUseCase useCase) =>
@@ -91,11 +100,14 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("UpdateSale")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("UpdateSale")
             .WithSummary("Actualizar una venta en existencia para devoluciones")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -114,10 +126,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("BuscarVentaFolio")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("BuscarVentaFolio")
             .WithSummary("Buscar una venta por folio")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError); ;
         }
     }

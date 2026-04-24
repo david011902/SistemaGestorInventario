@@ -7,7 +7,7 @@ namespace SistemaGestorInventario.Endpoints
     {
         public static void MapVehicleTypeEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/vehicletypes").WithTags("VehicleTypes");
+            var group = app.MapGroup("/api/vehicletypes").WithTags("VehicleTypes").RequireAuthorization();
 
             group.MapGet("/{id:guid}", async (Guid id, GetVehicleTypeByIdUseCase useCase) => 
             {
@@ -20,9 +20,12 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.NotFound(new { error = ex.Message });
                 }
-            }).WithName("GetVehicleTypeById")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
+            .WithName("GetVehicleTypeById")
             .WithSummary("Obtener un tipo de vehiculo por su id")
             .Produces(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status404NotFound);
 
 
@@ -45,10 +48,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(ex.Message);
                 }
-            }).WithName("CreateVehicleType")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+           .RequireRateLimiting("peticiones-limite")
+           .WithName("CreateVehicleType")
            .WithSummary("Crea un tipo de vehiculo nuevo")
            .Produces(StatusCodes.Status201Created)
            .Produces(StatusCodes.Status400BadRequest)
+           .Produces(StatusCodes.Status429TooManyRequests)
            .Produces(StatusCodes.Status500InternalServerError);
 
 
@@ -64,10 +70,12 @@ namespace SistemaGestorInventario.Endpoints
                     return Results.InternalServerError(new { error = ex.Message });
                 }
 
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+               .RequireRateLimiting("peticiones-limite")
                .WithName("GetAllVehiclesType")
                .WithSummary("Obtener todos los tipos de vehiculo")
                .Produces(StatusCodes.Status200OK)
+               .Produces(StatusCodes.Status429TooManyRequests)
                .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapPut("/{id:guid}", async (Guid id, UpdateVehicleTypeDto dto, UpdateVehicleTypeUseCase useCase) =>
@@ -91,12 +99,14 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            })
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+            .RequireRateLimiting("peticiones-limite")
             .WithName("UpdateVehicle")
             .WithSummary("Actualizar un tipo de vehiculo en existencia")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapDelete("/{id:guid}", async (Guid id, DeleteVehicleTypeUseCase useCase) =>
@@ -115,10 +125,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("DeletevehicleType")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+             .RequireRateLimiting("peticiones-limite")
+             .WithName("DeletevehicleType")
              .WithSummary("Eliminar un tipo de vehiculo")
              .Produces(StatusCodes.Status204NoContent)
              .Produces(StatusCodes.Status404NotFound)
+             .Produces(StatusCodes.Status429TooManyRequests)
              .Produces(StatusCodes.Status500InternalServerError);
 
             group.MapGet("/name{name}", async (string name, GetVehicleTypeByNameUseCase useCase) =>
@@ -136,10 +149,13 @@ namespace SistemaGestorInventario.Endpoints
                 {
                     return Results.InternalServerError(new { error = ex.Message });
                 }
-            }).WithName("BuscarTipoDeVehiculoNombre")
+            }).RequireAuthorization(policy => policy.RequireRole("Employee", "Administrator"))
+          .RequireRateLimiting("peticiones-limite")
+          .WithName("BuscarTipoDeVehiculoNombre")
           .WithSummary("Buscar un tipo de vehiculo por nombre")
           .Produces(StatusCodes.Status200OK)
           .Produces(StatusCodes.Status404NotFound)
+          .Produces(StatusCodes.Status429TooManyRequests)
           .Produces(StatusCodes.Status500InternalServerError);
         }
     }
