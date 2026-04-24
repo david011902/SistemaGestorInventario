@@ -1,0 +1,2 @@
+# SistemaGestorInventario — Backend
+API REST desarrollada con **ASP.NET Core Web API** para la gestión integral de una PYME del sector LEDs. Incluye módulos de inventario, ventas, adquisiciones y administración de usuarios con control de acceso basado en roles.
