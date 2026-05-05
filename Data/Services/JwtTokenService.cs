@@ -1,29 +1,48 @@
 ﻿using Domain.Abstractions;
+using Domain.Entities;
 using Domain.Enums;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 namespace Data.Services
 {
-    public class JwtTokenService(IConfiguration config) : ITokenService
+    public class JwtTokenService(IConfiguration config, IRefreshTokenRepository refreshRepo) : ITokenService
     {
         private readonly string _accessSecret = config["Jwt:AccessSecret"]!;
-        private readonly string _refreshSecret = config["Jwt:RefreshSecret"]!;
-        public TokenPair Generate(TokenPayload payload)
+
+        public async Task<TokenPair>  GenerateAsync(TokenPayload payload)
         {
             var accessToken = BuildToken(payload, _accessSecret, minutes: 15);
-            var refreshToken = BuildToken(payload, _refreshSecret, minutes: 60 * 24 * 7);
+
+            var refreshToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+
+            await refreshRepo.SaveAsync(new RefreshToken
+            {
+                Token = refreshToken,
+                UserId = payload.Sub,
+                Email = payload.Email,
+                Role = payload.Role,
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            });
+
             return new TokenPair(accessToken, refreshToken);
         }
-
-        public TokenPair Refresh(string refreshToken)
+        public async Task<TokenPair> RefreshAsync(string refreshToken)
         {
-            var principal = ValidateToken(refreshToken, _refreshSecret);
-            var payload = ExtractPayload(principal);
-            return Generate(payload);
+            var stored = await refreshRepo.FindAsync(refreshToken);
+
+            if (stored is null || stored.IsRevoked || stored.ExpiresAt < DateTime.UtcNow)
+                throw new UnauthorizedAccessException("Refresh token inválido o expirado.");
+
+            // Rotación: invalida el token usado
+            await refreshRepo.RevokeAsync(refreshToken);
+
+            // Necesitamos los datos del usuario para generar el nuevo par
+            var payload = new TokenPayload(stored.UserId, stored.Email, stored.Role);
+            return await GenerateAsync(payload);
         }
 
         public TokenPayload Verify(string token)
@@ -40,11 +59,11 @@ namespace Data.Services
 
             var claims = new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub,   payload.Sub.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, payload.Email),
-            new Claim(ClaimTypes.Role,               payload.Role.ToString()),
-            new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
-        };
+                new Claim(JwtRegisteredClaimNames.Sub,   payload.Sub.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, payload.Email),
+                new Claim(ClaimTypes.Role,               payload.Role.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
+            };
 
             var token = new JwtSecurityToken(
                 claims: claims,
@@ -56,6 +75,7 @@ namespace Data.Services
 
         private ClaimsPrincipal ValidateToken(string token, string secret)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
             return new JwtSecurityTokenHandler().ValidateToken(token,
@@ -88,5 +108,9 @@ namespace Data.Services
 
             return new TokenPayload(sub, email, role);
         }
+
+      
+
+       
     }
 }

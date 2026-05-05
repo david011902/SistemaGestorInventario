@@ -38,7 +38,7 @@ namespace SistemaGestorInventario.Endpoints
                 try
                 {
                     var product = await useCase.ExecuteAsync(dto);
-                    return Results.Created($"/api/persons/{product.Id}", product);
+                    return Results.Created($"/api/product/{product.Id}", product);
                 }
                 catch (InvalidOperationException ex)
                 {

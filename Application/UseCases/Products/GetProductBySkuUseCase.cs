@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.Products;
 using Domain.Abstractions;
 using Domain.Entities;
+using System.Linq.Expressions;
 
 
 namespace Application.UseCases.Products
@@ -19,7 +20,7 @@ namespace Application.UseCases.Products
             var products = await _repository.GetBySkuAsync(sku);
             if(products == null)
             {
-                return null;
+                throw new InvalidOperationException($"No existe un pructo con el SKU'{sku}'");
             }
             return  new ResponseProductDto
             {

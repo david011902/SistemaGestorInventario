@@ -83,7 +83,7 @@ builder.Services.AddScoped<IVehicleTypeRepository, VehicleTypeRepository>();
 builder.Services.AddScoped<ISocketTypeRepository, SocketTypeRepository>();
 builder.Services.AddScoped<IAuthRepository, PgAuthRepository>();
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
-
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 //Rate limiting
 builder.Services.AddRateLimiter(options =>
 {
@@ -112,10 +112,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                                           Encoding.UTF8.GetBytes(accessSecret)),
+                                   Encoding.UTF8.GetBytes(accessSecret)),
             ValidateIssuer = false,
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero,
+        };
+        //Leer el token de la cookie
+        opt.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Cookies["access_token"];
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = Uri.UnescapeDataString(accessToken);
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 

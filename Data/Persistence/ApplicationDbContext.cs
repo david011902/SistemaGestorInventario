@@ -19,6 +19,7 @@ namespace Data.Persistence
         public DbSet<VehicleTypeEntity> VehicleTypes { get; set; }
         public DbSet<SocketTypeEntity> SocketTypes { get; set; }
         public DbSet<UserEntity> Users => Set<UserEntity>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         //sobreescribir un metodo, especificar la estructura 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -260,14 +261,22 @@ namespace Data.Persistence
         private void UpdateTimestamps()
         {
             var entries = ChangeTracker.Entries()
-                .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added);
+        .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added);
+
             foreach (var entry in entries)
             {
+                if (entry.Properties.Any(p => p.Metadata.Name == "UpdateAt"))
+                {
+                    entry.Property("UpdateAt").CurrentValue = DateTime.UtcNow;
+                }
+
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Property("CreateAt").CurrentValue = DateTime.UtcNow;
+                    if (entry.Properties.Any(p => p.Metadata.Name == "CreateAt"))
+                    {
+                        entry.Property("CreateAt").CurrentValue = DateTime.UtcNow;
+                    }
                 }
-                entry.Property("UpdateAt").CurrentValue = DateTime.UtcNow;
             }
         }
 

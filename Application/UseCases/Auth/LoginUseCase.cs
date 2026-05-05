@@ -15,12 +15,15 @@ namespace Application.UseCases.Auth
                 throw new UnauthorizedAccessException("Credenciales inválidas.");
 
             var payload = new TokenPayload(user.Id, user.Email, user.Role);
-            var tokens = tokenService.Generate(payload);
+            var tokens = await tokenService.GenerateAsync(payload);
 
             return new LoginResponseDto
             {
                 AccessToken = tokens.AccessToken,
-                RefreshToken = tokens.RefreshToken
+                RefreshToken = tokens.RefreshToken,
+                UserId = user.Id,
+                Email = user.Email,
+                Role = user.Role.ToString()
             };
         }
     }

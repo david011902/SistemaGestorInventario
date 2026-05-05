@@ -8,15 +8,9 @@ namespace Application.UseCases.Auth
 {
     public class RefreshTokenUseCase(ITokenService tokenService)
     {
-        public LoginResponseDto ExecuteAsync(RefreshRequestDto dto)
+        public async Task<TokenPair> ExecuteAsync(string refreshToken)
         {
-            var tokens = tokenService.Refresh(dto.RefreshToken);
-
-            return new LoginResponseDto
-            {
-                AccessToken = tokens.AccessToken,
-                RefreshToken = tokens.RefreshToken
-            };
+            return await tokenService.RefreshAsync(refreshToken);
         }
     }
 }
