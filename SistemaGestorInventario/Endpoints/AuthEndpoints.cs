@@ -1,8 +1,10 @@
 ﻿using Application.DTOs.Auth;
 using Application.UseCases.Auth;
 using Domain.Abstractions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -10,7 +12,7 @@ namespace SistemaGestorInventario.Endpoints
 {
     public static class AuthEndpoints
     {
-        public static void MapAuthEndpoints(this IEndpointRouteBuilder app) 
+        public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/auth")
             .WithTags("Auth");
@@ -54,9 +56,11 @@ namespace SistemaGestorInventario.Endpoints
             .Produces(StatusCodes.Status429TooManyRequests);
 
 
+            //Es necesario "httpcontext" para las cookies
             group.MapPost("/login", async (
                 [FromBody] LoginRequest request,
-                LoginUseCase useCase) =>
+                LoginUseCase useCase,
+                HttpContext httpContext) =>
             {
                 try
                 {
@@ -66,8 +70,19 @@ namespace SistemaGestorInventario.Endpoints
                         Password = request.Password
                     };
 
-                    var response = await useCase.ExecuteAsync(dto);
-                    return Results.Ok(response);
+                    var result = await useCase.ExecuteAsync(dto); 
+                    SetTokenCookies(httpContext, new TokenPair(result.AccessToken, result.RefreshToken));
+
+                    return Results.Ok(new
+                    {
+                        message = "Login exitoso",
+                        user = new
+                        {
+                            id = result.UserId,
+                            email = result.Email,
+                            role = result.Role
+                        }
+                    });
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -79,26 +94,35 @@ namespace SistemaGestorInventario.Endpoints
                 }
             }).RequireRateLimiting("peticiones-limite")
             .WithName("Login")
-            .WithSummary("Inicia sesión y devuelve tokens JWT")
+            .WithSummary("Inicia sesión y setea cookies HttpOnly")
             .Produces<LoginResponseDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
+            group.MapPost("/logout", (HttpContext httpContext) =>
+            {
+                httpContext.Response.Cookies.Delete("access_token");
+                httpContext.Response.Cookies.Delete("refresh_token");
+                return Results.Ok(new { message = "Sesión cerrada" });
+            }).WithName("Logout")
+            .AllowAnonymous();
 
-            group.MapPost("/refresh", (
+            group.MapPost("/refresh", async (
                 [FromBody] RefreshRequest request,
+                HttpContext httpContext,
                 RefreshTokenUseCase useCase) =>
             {
                 try
                 {
-                    var dto = new RefreshRequestDto
-                    {
-                        RefreshToken = request.RefreshToken
-                    };
+                    var refreshToken = httpContext.Request.Cookies["refresh_token"];
+                    if (string.IsNullOrEmpty(refreshToken))
+                        return Results.Unauthorized();
 
-                    var response = useCase.ExecuteAsync(dto);
-                    return Results.Ok(response);
+                    var tokens = await useCase.ExecuteAsync(refreshToken);
+                    SetTokenCookies(httpContext, tokens);
+
+                    return Results.Ok(new { message = "Token renovado" });
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -110,39 +134,70 @@ namespace SistemaGestorInventario.Endpoints
                 }
             }).RequireRateLimiting("peticiones-limite")
             .WithName("RefreshToken")
-            .WithSummary("Renueva el access token con el refresh token")
+            .WithSummary("Renueva el access token con el refresh token en la cookie")
             .Produces<LoginResponseDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status429TooManyRequests)
             .Produces(StatusCodes.Status500InternalServerError);
 
 
-            group.MapGet("/me", (ClaimsPrincipal currentUser) =>
+            group.MapGet("/me", (
+            HttpContext httpContext,
+            ITokenService tokenService) =>
             {
+                var accessToken = httpContext.Request.Cookies["access_token"];
+
+                if (string.IsNullOrEmpty(accessToken))
+                    return Results.Unauthorized();
+
                 try
                 {
-                    var userId = currentUser.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-                    var email = currentUser.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
-                    var role = currentUser.FindFirst(ClaimTypes.Role)?.Value;
+                    var payload = tokenService.Verify(accessToken);
 
-                    return Results.Ok(new { userId, email, role });
+                    return Results.Ok(new
+                    {
+                        id = payload.Sub,
+                        email = payload.Email,
+                        role = payload.Role.ToString()
+                    });
                 }
                 catch (Exception ex)
                 {
-                    return Results.InternalServerError(ex.Message);
+                    return Results.Json(new { message = "Sesión inválida o expirada", error = ex.Message },
+                                        statusCode: StatusCodes.Status401Unauthorized);
                 }
-            }).RequireRateLimiting("peticiones-limite")
-            .WithName("Me")
-            .WithSummary("Devuelve los datos del usuario autenticado")
-            .RequireAuthorization()
-            .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status429TooManyRequests)
-            .Produces(StatusCodes.Status500InternalServerError);
+            })
+                .AllowAnonymous() 
+                .WithName("GetUserSession")
+                .WithSummary("Obtiene los datos del usuario a partir de la cookie access_token")
+                .WithDescription("Este endpoint extrae el JWT de las cookies y lo decodifica para retornar el perfil.")
+                .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status401Unauthorized)
+                .Produces(StatusCodes.Status500InternalServerError);
         }
+        static void SetTokenCookies(HttpContext httpContext, TokenPair tokens)
+        {
+            var accessOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,//Es de esta forma porque el front no se encuentra alojado en el mismo sitio que el back
+                Expires = DateTimeOffset.UtcNow.AddMinutes(15)
+            };
 
+            var refreshOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            };
+
+            httpContext.Response.Cookies.Append("access_token", tokens.AccessToken, accessOptions);
+            httpContext.Response.Cookies.Append("refresh_token", tokens.RefreshToken, refreshOptions);
+        }
+        public record RegisterRequest(string Name, string Email, string Password);
+        public record LoginRequest(string Email, string Password);
+        public record RefreshRequest(string RefreshToken);
     }
-    public record RegisterRequest(string Name, string Email, string Password);
-    public record LoginRequest(string Email, string Password);
-    public record RefreshRequest(string RefreshToken);
 }

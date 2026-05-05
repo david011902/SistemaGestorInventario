@@ -12,7 +12,7 @@ namespace Domain.Entities
     {
         public Guid Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
-        public string Sku { get; private set; } = string.Empty;
+        public string? Sku { get; private set; } = string.Empty;
         public decimal Price { get; private set; }
         //public int CategoryId { get; private set; }
 
@@ -33,7 +33,6 @@ namespace Domain.Entities
         public ProductEntity(string name, string sku, decimal price, Guid vehicleTypeId, Guid? socketTypeId = null)
         {
             ValidateName(name);
-            ValidateSku(sku);
             ValidatePrice(price);
             ValidateVehicleType(vehicleTypeId);
             ValidateSocketType(socketTypeId);
@@ -71,16 +70,7 @@ namespace Domain.Entities
             IsActive = false;
             DeletedAt = DateTime.UtcNow;
         }
-        private void ValidateSku(string sku)
-        {
-            if (string.IsNullOrEmpty(sku))
-                throw new ArgumentException("SKU no puede estar vacío.");
-            if (sku.Trim().Length < 2)
-                throw new ArgumentException("El SKU debe tener al menos 3 caracteres.", nameof(sku));
-
-            if (sku.Trim().Length > 20)
-                throw new ArgumentException("El SKU no debe ser mayor a 20 caracteres", nameof(sku));
-        }
+       
 
         private void ValidateName(string name)
         {
